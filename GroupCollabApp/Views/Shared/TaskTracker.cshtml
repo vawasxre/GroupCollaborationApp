@@ -1,0 +1,106 @@
+﻿@{
+    ViewData["Title"] = "TaskTracker";
+}
+
+
+
+
+
+
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-6">
+            <form>
+                <div class="form-group">
+                    <label for="task-title">Task Title</label>
+                    <input type="text" class="form-control" id="task-title" placeholder="Task title" />
+                </div>
+                <div class="form-group">
+                    <label for="task-description">Task Description</label>
+                    <input type="text" class="form-control" id="task-description" placeholder="Task description" />
+                </div>
+                <div class="form-group">
+                    <label for="due-date">Due Date</label>
+                    <input type="date" class="form-control" id="due-date" />
+                </div>
+                <button type="button" id="add-task" class="btn btn-primary">Add Task</button>
+            </form>
+        </div>
+        <div class="col-md-6">
+            <div class="row" id="task-list">
+            </div>
+        </div>
+    </div>
+</div>
+
+
+    @section Scripts {
+        <script>
+            function getTasks() {
+                const tasks = localStorage.getItem("tasks");
+                return tasks ? JSON.parse(tasks) : [];
+            }
+
+            function saveTasks(tasks) {
+                localStorage.setItem("tasks", JSON.stringify(tasks));
+            }
+
+            function renderTasks() {
+                const taskList = document.getElementById("task-list");
+                const tasks = getTasks();
+                taskList.innerHTML = "";
+                tasks.forEach((task) => {
+                    const div = document.createElement("div");
+                    div.classList.add("col-md-6", "mb-3");
+                    div.innerHTML = `
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${task.title}</h5>
+                                        <h6 class="card-subtitle mb-2 text-muted">Due Date: ${task.dueDate}</h6>
+                                        <p class="card-text">${task.description}</p>
+                                        <button class="delete-task btn btn-danger" data-task-id="${task.id}">Delete</button>
+                                    </div>
+                                </div>
+                            `;
+                    taskList.appendChild(div);
+                });
+            }
+
+        const addTaskButton = document.getElementById("add-task");
+        addTaskButton.addEventListener("click", () => {
+            const taskTitle = document.getElementById("task-title").value;
+            if (taskTitle.trim() === '') {
+                alert('Please add a task title');
+                return;
+            }
+            const taskDescription = document.getElementById("task-description").value;
+            const tasks = getTasks();
+            tasks.push({
+                id: Date.now(),
+                title: taskTitle,
+                description: taskDescription,
+                isCompleted: false,
+                dueDate: document.getElementById("due-date").value,
+            });
+            saveTasks(tasks);
+            document.getElementById("task-title").value = "";
+            document.getElementById("task-description").value = "";
+            document.getElementById("due-date").value = "";
+            renderTasks();
+        });
+
+            const taskList = document.getElementById("task-list");
+            taskList.addEventListener("click", (event) => {
+                if (event.target.classList.contains("delete-task")) {
+                    const taskId = parseInt(event.target.getAttribute("data-task-id"));
+                    const tasks = getTasks().filter(task => task.id !== taskId);
+                    saveTasks(tasks);
+                    renderTasks();
+                }
+            });
+
+            window.addEventListener("load", () => {
+                renderTasks();
+            });
+        </script>
+    }
